@@ -193,10 +193,19 @@ export function MensagensTab() {
 
                     {tipoEnvio === "agendado" && (
                         <TextField
-                            type="datetime-local" size="small" required label="Data e Hora do Disparo"
-                            value={dataAgendamento} onChange={(e) => setDataAgendamento(e.target.value)}
-                            disabled={loadingAdd} slotProps={{ shrink: true } as any}
+                            type="datetime-local"
+                            size="small"
+                            required
+                            label="Data e Hora do Disparo"
+                            value={dataAgendamento}
+                            onChange={(e) => setDataAgendamento(e.target.value)}
+                            disabled={loadingAdd}
                             className="w-full sm:w-64"
+                            slotProps={{
+                                inputLabel: {
+                                    shrink: true, // <-- Correção: Força o rótulo a ficar fixo no topo
+                                },
+                            }}
                         />
                     )}
                 </div>
