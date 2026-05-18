@@ -28,15 +28,15 @@
 [x] Excluir (Delete): Criar a função para remover uma conexão da lista.
 
 ⏳ FASE 4: O CRUD de Contatos (PENDENTE)
-[ ] Interface: Criar a tela/área de Contatos.
+[x] Interface: Criar a tela/área de Contatos.
 
-[ ] Criar (Create): Salvar contatos (com nome, telefone e clientId) no Firestore.
+[x] Criar (Create): Salvar contatos (com nome, telefone e clientId) no Firestore.
 
-[ ] Ler (Read): Listar contatos em tempo real.
+[x] Ler (Read): Listar contatos em tempo real.
 
-[ ] Editar (Update): Alterar dados do contato.
+[x] Editar (Update): Alterar dados do contato.
 
-[ ] Excluir (Delete): Remover contato.
+[x] Excluir (Delete): Remover contato.
 
 ⏳ FASE 5: Mensagens e Agendamentos (PENDENTE)
 [ ] Interface de Envio: Tela para selecionar um ou mais contatos específicos.

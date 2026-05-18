@@ -7,6 +7,7 @@ import { AppBar, Toolbar, Typography, Button, Container, Box, Tabs, Tab } from "
 import LogoutIcon from '@mui/icons-material/Logout';
 import { ConexoesTab } from "../components/ConectionsTab";
 import { ContatosTab } from "../components/ContactsTab";
+import { MensagensTab } from "../components/MensagensTab"; // <-- Nova Importação
 
 export function Dashboard() {
   const navigate = useNavigate();
@@ -43,18 +44,18 @@ export function Dashboard() {
       </AppBar>
 
       <Container maxWidth="lg" className="mt-8 pb-12">
-        {/* Menu de Abas */}
         <Box sx={{ borderBottom: 1, borderColor: 'divider' }} className="mb-6">
           <Tabs value={tabValue} onChange={handleTabChange} aria-label="Menu do SaaS">
             <Tab label="Conexões" />
             <Tab label="Contatos" />
+            <Tab label="Mensagens" /> {/* <-- Nova Tab */}
           </Tabs>
         </Box>
 
-        {/* Conteúdo Dinâmico */}
         <Box className="rounded-lg bg-white p-6 shadow-sm">
           {tabValue === 0 && <ConexoesTab />}
           {tabValue === 1 && <ContatosTab />}
+          {tabValue === 2 && <MensagensTab />} {/* <-- Novo Conteúdo */}
         </Box>
       </Container>
     </div>
