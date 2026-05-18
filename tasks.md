@@ -23,9 +23,9 @@
 
 [x] Criar (Create): Formulário adicionando a conexão no banco com sucesso.
 
-[ ] Editar (Update): Criar a função para alterar o nome de uma conexão.
+[x] Editar (Update): Criar a função para alterar o nome de uma conexão.
 
-[ ] Excluir (Delete): Criar a função para remover uma conexão da lista.
+[x] Excluir (Delete): Criar a função para remover uma conexão da lista.
 
 ⏳ FASE 4: O CRUD de Contatos (PENDENTE)
 [ ] Interface: Criar a tela/área de Contatos.
