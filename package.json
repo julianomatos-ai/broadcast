@@ -1,0 +1,21 @@
+{
+  "name": "broadcast-saas-root",
+  "version": "1.0.0",
+  "description": "Raiz do projeto SaaS Broadcast com scripts de deploy centralizados.",
+  "private": true,
+  "scripts": {
+    "web:build": "cd web && npm install && npm run build",
+    "web:deploy": "firebase deploy --only hosting",
+    "web:deploy-full": "npm run web:build && npm run web:deploy",
+    "functions:build": "cd functions && npm install && npm run build",
+    "functions:deploy": "firebase deploy --only functions",
+    "functions:deploy-full": "npm run functions:build && npm run functions:deploy",
+    "rules:deploy": "firebase deploy --only firestore:rules",
+    "deploy-all-visual": "npm run web:deploy-full && npm run rules:deploy"
+  },
+  "author": "Juliano",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
