@@ -90,7 +90,7 @@ export function Login() {
 
         <p className="mt-6 text-center text-sm text-gray-600">
           Ainda não tem uma conta?{" "}
-          <Link to="/cadastro" className="font-semibold text-blue-600 hover:underline">
+          <Link to="/register" className="font-semibold text-blue-600 hover:underline">
             Crie sua conta aqui
           </Link>
         </p>

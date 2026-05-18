@@ -9,7 +9,7 @@ export default function App() {
       <Routes>
         {/* Rotas Públicas */}
         <Route path="/login" element={<Login />} />
-        <Route path="/cadastro" element={<Register />} />
+        <Route path="/register" element={<Register />} />
 
         {/* Rota Privada (O SaaS em si) */}
         <Route path="/dashboard" element={<Dashboard />} />
