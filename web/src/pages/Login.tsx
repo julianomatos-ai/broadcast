@@ -13,7 +13,7 @@ export function Login() {
 
   // Função pura para lidar com o envio do formulário
   const handleLogin = async (e: FormEvent) => {
-    e.preventDefault(); // Evita que a página recarregue
+    e.preventDefault(); 
     setError("");
     setLoading(true);
 

@@ -1,7 +1,8 @@
 import { useState, type FormEvent, useEffect } from "react";
-import { collection, addDoc, query, where, orderBy, onSnapshot, doc, deleteDoc, updateDoc } from "firebase/firestore";
-import { db } from "../../firebase";
 import { useAuth } from "../contexts/AuthContext";
+import { ConexaoRepository } from "../repositories/ConexaoRepository";
+import { useFirestoreError } from "../hooks/useFirestoreError";
+import { motion } from 'framer-motion';
 import { 
   Typography, Button, Box, TextField, Alert, CircularProgress, 
   List, ListItem, ListItemText, Paper, Divider, IconButton, 
@@ -12,14 +13,11 @@ import CellTowerIcon from '@mui/icons-material/CellTower';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 
-interface Conexao {
-  id: string;
-  nome: string;
-  clientId: string;
-}
+import type { Conexao } from "../repositories/ConexaoRepository";
 
 export function ConexoesTab() {
   const { user } = useAuth();
+  const { mapError } = useFirestoreError();
   const [nomeConexao, setNomeConexao] = useState("");
   const [loadingAdd, setLoadingAdd] = useState(false);
   const [error, setError] = useState("");
@@ -35,13 +33,10 @@ export function ConexoesTab() {
 
   useEffect(() => {
     if (!user) return;
-    const q = query(collection(db, "conexoes"), where("clientId", "==", user.uid), orderBy("createdAt", "desc"));
-    const unsubscribe = onSnapshot(q, (querySnapshot) => {
-      const lista: Conexao[] = [];
-      querySnapshot.forEach((doc) => { lista.push({ id: doc.id, ...doc.data() } as Conexao); });
+    const unsubscribe = ConexaoRepository.listarPorCliente(user.uid, (lista) => {
       setConexoes(lista);
       setLoadingList(false);
-    }, () => setLoadingList(false));
+    });
     return () => unsubscribe();
   }, [user]);
 
@@ -50,27 +45,27 @@ export function ConexoesTab() {
     if (!nomeConexao.trim() || !user) return;
     setLoadingAdd(true); setError(""); setSuccess("");
     try {
-      await addDoc(collection(db, "conexoes"), { nome: nomeConexao.trim(), clientId: user.uid, createdAt: new Date() });
+      await ConexaoRepository.criar(nomeConexao, user.uid);
       setNomeConexao(""); setSuccess("Conexão criada com sucesso!");
-    } catch { setError("Erro ao criar conexão."); } finally { setLoadingAdd(false); }
+    } catch (err) { setError(mapError(err)); } finally { setLoadingAdd(false); }
   };
 
   const confirmarDelete = async () => {
     if (!conexaoAlvo) return;
     setLoadingDelete(true);
     try {
-      await deleteDoc(doc(db, "conexoes", conexaoAlvo.id));
+      await ConexaoRepository.deletar(conexaoAlvo.id);
       setSuccess("Conexão excluída com sucesso!"); setModalDeleteOpen(false);
-    } catch { setError("Erro ao excluir a conexão."); } finally { setLoadingDelete(false); setConexaoAlvo(null); }
+    } catch (err) { setError(mapError(err)); } finally { setLoadingDelete(false); setConexaoAlvo(null); }
   };
 
   const confirmarEdit = async () => {
     if (!conexaoAlvo || !nomeEdit.trim()) return;
     setLoadingEdit(true);
     try {
-      await updateDoc(doc(db, "conexoes", conexaoAlvo.id), { nome: nomeEdit.trim() });
+      await ConexaoRepository.atualizar(conexaoAlvo.id, nomeEdit);
       setSuccess("Conexão atualizada com sucesso!"); setModalEditOpen(false);
-    } catch { setError("Erro ao atualizar a conexão."); } finally { setLoadingEdit(false); setConexaoAlvo(null); }
+    } catch (err) { setError(mapError(err)); } finally { setLoadingEdit(false); setConexaoAlvo(null); }
   };
 
   return (
@@ -100,7 +95,12 @@ export function ConexoesTab() {
         <Paper variant="outlined">
           <List disablePadding>
             {conexoes.map((conexao, index) => (
-              <div key={conexao.id}>
+              <motion.div
+                key={conexao.id}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.2, delay: index * 0.05 }}
+              >
                 <ListItem className="py-3 hover:bg-gray-50" secondaryAction={
                   <div className="flex gap-1">
                     <IconButton onClick={() => { setConexaoAlvo(conexao); setNomeEdit(conexao.nome); setModalEditOpen(true); }}><EditIcon className="text-blue-600" /></IconButton>
@@ -111,7 +111,7 @@ export function ConexoesTab() {
                   <ListItemText primary={<span className="font-medium text-gray-800">{conexao.nome}</span>} secondary={`ID: ${conexao.id}`} />
                 </ListItem>
                 {index < conexoes.length - 1 && <Divider />}
-              </div>
+              </motion.div>
             ))}
           </List>
         </Paper>

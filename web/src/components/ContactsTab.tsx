@@ -1,7 +1,8 @@
 import { useState, type FormEvent, useEffect } from "react";
-import { collection, addDoc, query, where, orderBy, onSnapshot, doc, deleteDoc, updateDoc } from "firebase/firestore";
-import { db } from "../../firebase";
 import { useAuth } from "../contexts/AuthContext";
+import { ContatoRepository } from "../repositories/ContatoRepository";
+import { useFirestoreError } from "../hooks/useFirestoreError";
+import { motion } from 'framer-motion';
 import {
     Typography, Button, Box, TextField, Alert, CircularProgress,
     List, ListItem, ListItemText, Paper, Divider, IconButton,
@@ -12,15 +13,11 @@ import PersonIcon from '@mui/icons-material/Person';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 
-interface Contato {
-    id: string;
-    nome: string;
-    telefone: string;
-    clientId: string;
-}
+import type { Contato } from "../repositories/ContatoRepository";
 
 export function ContatosTab() {
     const { user } = useAuth();
+    const { mapError } = useFirestoreError();
 
     // Estados do formulário de criação
     const [nome, setNome] = useState("");
@@ -46,24 +43,10 @@ export function ContatosTab() {
     // Escuta os contatos em tempo real filtrados por este cliente
     useEffect(() => {
         if (!user) return;
-        const q = query(
-            collection(db, "contatos"),
-            where("clientId", "==", user.uid),
-            orderBy("createdAt", "desc")
-        );
-
-        const unsubscribe = onSnapshot(q, (querySnapshot) => {
-            const lista: Contato[] = [];
-            querySnapshot.forEach((doc) => {
-                lista.push({ id: doc.id, ...doc.data() } as Contato);
-            });
+        const unsubscribe = ContatoRepository.listarPorCliente(user.uid, (lista) => {
             setContatos(lista);
             setLoadingList(false);
-        }, (err) => {
-            console.error("Erro ao carregar contatos:", err);
-            setLoadingList(false);
         });
-
         return () => unsubscribe();
     }, [user]);
 
@@ -75,17 +58,12 @@ export function ContatosTab() {
         setLoadingAdd(true); setError(""); setSuccess("");
 
         try {
-            await addDoc(collection(db, "contatos"), {
-                nome: nome.trim(),
-                telefone: telefone.trim(),
-                clientId: user.uid,
-                createdAt: new Date()
-            });
+            await ContatoRepository.criar(nome, telefone, user.uid);
             setNome("");
             setTelefone("");
             setSuccess("Contato salvo com sucesso!");
-        } catch {
-            setError("Erro ao salvar contato.");
+        } catch (err) {
+            setError(mapError(err));
         } finally {
             setLoadingAdd(false);
         }
@@ -96,11 +74,11 @@ export function ContatosTab() {
         if (!contatoAlvo) return;
         setLoadingDelete(true);
         try {
-            await deleteDoc(doc(db, "contatos", contatoAlvo.id));
+            await ContatoRepository.deletar(contatoAlvo.id);
             setSuccess("Contato excluído com sucesso!");
             setModalDeleteOpen(false);
-        } catch {
-            setError("Erro ao excluir contato.");
+        } catch (err) {
+            setError(mapError(err));
         } finally {
             setLoadingDelete(false);
             setContatoAlvo(null);
@@ -112,14 +90,11 @@ export function ContatosTab() {
         if (!contatoAlvo || !nomeEdit.trim() || !telefoneEdit.trim()) return;
         setLoadingEdit(true);
         try {
-            await updateDoc(doc(db, "contatos", contatoAlvo.id), {
-                nome: nomeEdit.trim(),
-                telefone: telefoneEdit.trim()
-            });
+            await ContatoRepository.atualizar(contatoAlvo.id, nomeEdit, telefoneEdit);
             setSuccess("Contato atualizado com sucesso!");
             setModalEditOpen(false);
-        } catch {
-            setError("Erro ao atualizar contato.");
+        } catch (err) {
+            setError(mapError(err));
         } finally {
             setLoadingEdit(false);
             setContatoAlvo(null);
@@ -132,7 +107,6 @@ export function ContatosTab() {
             {error && <Alert severity="error" className="mb-4" onClose={() => setError("")}>{error}</Alert>}
 
             {/* Formulário de Criação */}
-            {/* Formulário de Criação Corrigido */}
             <form onSubmit={handleCreateContato} className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center">
                 <TextField
                     label="Nome do Contato" variant="outlined" size="small" fullWidth required
@@ -167,7 +141,12 @@ export function ContatosTab() {
                 <Paper variant="outlined">
                     <List disablePadding>
                         {contatos.map((contato, index) => (
-                            <div key={contato.id}>
+                            <motion.div
+                                key={contato.id}
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ duration: 0.2, delay: index * 0.05 }}
+                            >
                                 <ListItem className="py-3 hover:bg-gray-50" secondaryAction={
                                     <div className="flex gap-1">
                                         <IconButton onClick={() => { setContatoAlvo(contato); setNomeEdit(contato.nome); setTelefoneEdit(contato.telefone); setModalEditOpen(true); }}><EditIcon className="text-blue-600" /></IconButton>
@@ -178,7 +157,7 @@ export function ContatosTab() {
                                     <ListItemText primary={<span className="font-medium text-gray-800">{contato.nome}</span>} secondary={`Tel: ${contato.telefone} | ID: ${contato.id}`} />
                                 </ListItem>
                                 {index < contatos.length - 1 && <Divider />}
-                            </div>
+                            </motion.div>
                         ))}
                     </List>
                 </Paper>
